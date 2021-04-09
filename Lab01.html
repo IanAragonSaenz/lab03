@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<script type=module>
+	var addButton = document.getElementById("Add");
+	addButton.addEventListener("click", addItem);
+	var list = document.getElementById("uList");
+	var total = 0;
+	var totalPrecio = document.getElementById("total-precio");
+	const reg = /^-?\d+\.?\d*$/
+	function addItem(){
+		var name = document.getElementById("uname").value;
+		var price = document.getElementById("price").value;
+		
+		if(reg.test(price)) {
+			total += parseFloat(parseFloat(price).toFixed(2));
+			changeTotal(total);
+			
+			var element = document.createElement('li');
+			var deleteButton = document.createElement("button");
+			
+			element.appendChild(document.createTextNode(name));
+			element.appendChild(document.createTextNode(" - $" + price + "  "));
+			element.value = price * 100;
+			console.log(element.value * 100);
+			deleteButton.textContent = "delete item";
+			
+			list.appendChild(element);
+			element.appendChild(deleteButton);
+			
+			deleteButton.onclick = function() {
+				var val = parseFloat((parseFloat(this.parentElement.value)/100).toFixed(2));
+				total -= val;
+				if(total < 0.01){
+					changeTotal(0);
+				} else {
+					changeTotal(total);
+				}
+				this.parentElement.style.display = "none";
+			}
+		}
+	}
+	
+	function changeTotal(value){
+		totalPrecio.textContent = value;
+	}
+</script>
+
+<style>
+	body {
+		background-color: #5DC1B9;
+	}
+</style>
+
+<head>
+	<h1>Items</h1>
+</head>
+
+<body>
+
+	<h3> Total: <span id="total-precio">0</span></h3>
+  <div>
+	<label >Nombre: </label>
+	<input type="text" id="uname" name="name">
+  </div>
+  <div>
+	<label>Precio:  </label>
+	<input type="number" id="price" name="name" value="0">
+  </div>
+  <div>
+	<button id="Add">Add Item</button>
+  </div>
+  
+  <ul id="uList"></ul>
+
+</body>
+
+</html>
