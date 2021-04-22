@@ -1,14 +1,15 @@
 const express = require('express');
 const app = express();
+var cors = require('cors');
 const port = 3000;
 const axios = require('axios').default;
+app.use(cors());
 
-
-app.get('/', (req, res) => {
+app.get('/queryForm', (req, res) => {
     res.sendFile("./page.html", {root: __dirname});
 });
 
-app.get('/pokemon', function (req, res) {
+app.get('/queryForm/pokemon', function (req, res) {
 
     let nameParam = req.query.name;
     const URL = 'https://pokeapi.co/api/v2/pokemon/';

@@ -9,7 +9,7 @@
 
     </head>
     <body>
-        <form action="http://127.0.0.1:3000/pokemon" method="GET">
+        <form action="http://127.0.0.1:3000/queryForm/pokemon" method="GET">
 			Name: <input type="text" id="name" /> <br/>
 			<input type="submit" name="submit" value="Submit info">
 			<div id="alert"></div>
@@ -18,98 +18,128 @@
 		<ul id="elements"></ul>
 		
 		<script>
+		class Product{
+			constructor(n, i, t, w){
+				this.name = n;
+				this.img = i;
+				this.type = t;
+				this.weigth = w;
+			}
+		}
+		
 		var theForm = document.querySelector("form");
 		var txtName = document.getElementById("name");
 		var elements = document.getElementById("elements");
 		var alert_placeholder = document.getElementById("alert");
 		var total = document.getElementById("totalWeigth");
-		const prefixUrl = "http://127.0.0.1:3000/pokemon/?name="
-
-		theForm.onsubmit = (event) => {
-		event.preventDefault();
-		let url;
-		if(txtName.value == ""){
-		url = prefixUrl + "eref";
-		} else {
-		url = prefixUrl + txtName.value;
-		console.log(url);
+		const prefixUrl = "http://127.0.0.1:3000/queryForm/pokemon/?name="
+		products = [];
+		if (localStorage.getItem('products')){
+			products = JSON.parse(localStorage.getItem('products'));
 		}
+		
+		theForm.onsubmit = (event) => {
+			event.preventDefault();
+			var found = false;
+			if(products.length != 0){
+				products.forEach(poke =>{
+					if(poke.name == txtName.value){
+						found = true;
+						addCart(poke.name, poke.img, poke.type, poke.weigth);
+					}
+				});
+			}
+			if(found == false){
+				let url;
+				if(txtName.value == ""){
+					url = prefixUrl + "eref";
+				} else {
+					url = prefixUrl + txtName.value;
+					console.log(url);
+				}
 
-		var ajaxRequest = new XMLHttpRequest();
-		// 4 = DONE, 200 = OK
-		ajaxRequest.onreadystatechange = function() {
-		  if (this.readyState == 4 && this.status == 200 && this.responseText != "") {
-			   console.log(this.responseText);
-			   var pokemonData = this.responseText;
-			   var pokemonData = JSON.parse(pokemonData);
-			   
-			   var li = document.createElement("li");
-			   var div = document.createElement("div");
-			   div.class = "card";
-			   div.style = "width 18rem;"
-			   var img = document.createElement("img");
-			   img.src = pokemonData.img;
-			   img.class = "card-img-top";
-			   img.alt = "...";
-			   img.width = "200";
-			   img.height = "200";
-			   div.appendChild(img);
-			   
-			   var div2 = document.createElement("div");
-			   div2.class = "card-body";
-			   var header = document.createElement("h5");
-			   header.class = "card-title";
-			   header.innerHTML = pokemonData.name;
-			   var ul = document.createElement("ul");
-			   li2 = document.createElement("li");
-			   li3 = document.createElement("li");
-			   var p = document.createElement("p");
-			   p.class = "card-text";
-			   p.innerHTML = "Type: " + pokemonData.type;
-			   var p2 = document.createElement("p");
-			   p2.class = "card-text";
-			   p2.innerHTML = "Weigth: " + pokemonData.weigth;
-			   
-			   var deleteButton = document.createElement("button");
-			   total.textContent = parseFloat(total.textContent) + parseFloat(pokemonData.weigth);
-			   deleteButton.textContent = "delete item";
-			   deleteButton.value = pokemonData.weigth;
-			   
-			   
-			   li2.appendChild(p);
-			   li3.appendChild(p2);
-			   ul.appendChild(li2);
-			   ul.appendChild(li3);
-			   div2.appendChild(header);
-			   div2.appendChild(ul);
-			   div.appendChild(div2);
-			   li.appendChild(div);
-			   elements.appendChild(li);
-			   li.appendChild(deleteButton);
-			   
-			   
-			   deleteButton.onclick = function() {
+				var ajaxRequest = new XMLHttpRequest();
+				// 4 = DONE, 200 = OK
+				ajaxRequest.onreadystatechange = function() {
+				  if (this.readyState == 4 && this.status == 200 && this.responseText != "") {
+					console.log(this.responseText);
+					var pokemonData = this.responseText;
+					var pokemonData = JSON.parse(pokemonData);
+					let product = new Product(pokemonData.name, pokemonData.img, pokemonData.type, pokemonData.weigth);
+					products.push(product);
+					localStorage.setItem('products', JSON.stringify(products));
+					addCart(pokemonData.name, pokemonData.img, pokemonData.type, pokemonData.weigth);
+				  } else if(this.status == 404){
+					//alert to user
+					
+					alert_placeholder.innerHTML = '<div class="alert alert-warning alert-dismissible fade show" role="alert" id="alert_remove"><strong>Error!</strong> You should check the name of the pokemon above.</div>';
+					new bootstrap.Alert(alert_placeholder);
+					setTimeout(()=>{
+					var alertId = document.getElementById('alert_remove');
+					alertId.classList.add('modal');
+					},4000);
+					
+				  }
+				}
+				ajaxRequest.open("GET", url, true);
+				ajaxRequest.send(); 
+			}
+		};
+		
+		function addCart(name, imagen, type, weigth){
+			var li = document.createElement("li");
+			var div = document.createElement("div");
+			div.class = "card";
+			div.style = "width 18rem;"
+			var img = document.createElement("img");
+			img.src = imagen;
+			img.class = "card-img-top";
+			img.alt = "...";
+			img.width = "200";
+			img.height = "200";
+			div.appendChild(img);
+
+			var div2 = document.createElement("div");
+			div2.class = "card-body";
+			var header = document.createElement("h5");
+			header.class = "card-title";
+			header.innerHTML = name;
+			var ul = document.createElement("ul");
+			li2 = document.createElement("li");
+			li3 = document.createElement("li");
+			var p = document.createElement("p");
+			p.class = "card-text";
+			p.innerHTML = "Type: " + type;
+			var p2 = document.createElement("p");
+			p2.class = "card-text";
+			p2.innerHTML = "Weigth: " + weigth;
+
+			var deleteButton = document.createElement("button");
+			total.textContent = parseFloat(total.textContent) + parseFloat(weigth);
+			deleteButton.textContent = "delete item";
+			deleteButton.value = weigth;
+
+
+			li2.appendChild(p);
+			li3.appendChild(p2);
+			ul.appendChild(li2);
+			ul.appendChild(li3);
+			div2.appendChild(header);
+			div2.appendChild(ul);
+			div.appendChild(div2);
+			li.appendChild(div);
+			elements.appendChild(li);
+			li.appendChild(deleteButton);
+
+
+			deleteButton.onclick = function() {
 				var val = parseFloat(this.value);
 				total.textContent = parseFloat(total.textContent) - val;
 				
 				this.parentElement.style.display = "none";
 			}
-		   
-		  } else if(this.status == 404){
-			//alert to user
 			
-			alert_placeholder.innerHTML = '<div class="alert alert-warning alert-dismissible fade show" role="alert" id="alert_remove"><strong>Error!</strong> You should check the name of the pokemon above.</div>';
-			new bootstrap.Alert(alert_placeholder);
-			setTimeout(()=>{
-			var alertId = document.getElementById('alert_remove');
-			alertId.classList.add('modal');
-			},4000);
-			
-		  }
 		}
-		ajaxRequest.open("GET", url, true);
-		ajaxRequest.send(); 
-		};
 		</script>
     </body>
 </html>
