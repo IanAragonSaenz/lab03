@@ -36,6 +36,9 @@
 		products = [];
 		if (localStorage.getItem('products')){
 			products = JSON.parse(localStorage.getItem('products'));
+			products.forEach(poke =>{
+				addCart(poke.name, poke.img, poke.type, poke.weigth);
+			});
 		}
 		
 		theForm.onsubmit = (event) => {
@@ -46,6 +49,8 @@
 					if(poke.name == txtName.value){
 						found = true;
 						addCart(poke.name, poke.img, poke.type, poke.weigth);
+						products.push(poke);
+						localStorage.setItem('products', JSON.stringify(products));
 					}
 				});
 			}
@@ -131,14 +136,22 @@
 			elements.appendChild(li);
 			li.appendChild(deleteButton);
 
-
+			let product = new Product(name, imagen, type, weigth);
 			deleteButton.onclick = function() {
 				var val = parseFloat(this.value);
 				total.textContent = parseFloat(total.textContent) - val;
 				
 				this.parentElement.style.display = "none";
+				removePokemonFromCart(product);
 			}
 			
+		}
+		
+		function removePokemonFromCart(product){
+			let idx = products.indexOf(product);
+			products.splice(idx,1);
+			localStorage.setItem("products", JSON.stringify(products));
+			if (products.length==0) localStorage.removeItem("products");
 		}
 		</script>
     </body>
