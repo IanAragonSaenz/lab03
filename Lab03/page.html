@@ -34,13 +34,23 @@
 		var total = document.getElementById("totalWeigth");
 		const prefixUrl = "http://127.0.0.1:3000/queryForm/pokemon/?name="
 		products = [];
-		if (localStorage.getItem('products')){
-			products = JSON.parse(localStorage.getItem('products'));
-			products.forEach(poke =>{
-				addCart(poke.name, poke.img, poke.type, poke.weigth);
-			});
-		}
 		
+		var getPokemons = new XMLHttpRequest();
+		getPokemons.onreadystatechange = function() {
+		  if (this.readyState == 4 && this.status == 200 && this.responseText != "") {
+			console.log(this.responseText);
+			var pokemonData = this.responseText;
+			var pokemonData = JSON.parse(pokemonData);
+			pokemonData.forEach(poke => {
+				let product = new Product(poke.name, poke.img, poke.type, poke.weigth);
+				products.push(product);
+				addCart(poke.name, poke.img, poke.type, poke.weigth);
+			});			
+		  } 
+		}
+		getPokemons.open("GET", "http://127.0.0.1:3000/pokemons", true);
+		getPokemons.send();
+
 		theForm.onsubmit = (event) => {
 			event.preventDefault();
 			var found = false;
@@ -49,8 +59,6 @@
 					if(poke.name == txtName.value){
 						found = true;
 						addCart(poke.name, poke.img, poke.type, poke.weigth);
-						products.push(poke);
-						localStorage.setItem('products', JSON.stringify(products));
 					}
 				});
 			}
@@ -67,12 +75,12 @@
 				// 4 = DONE, 200 = OK
 				ajaxRequest.onreadystatechange = function() {
 				  if (this.readyState == 4 && this.status == 200 && this.responseText != "") {
-					console.log(this.responseText);
+
 					var pokemonData = this.responseText;
 					var pokemonData = JSON.parse(pokemonData);
 					let product = new Product(pokemonData.name, pokemonData.img, pokemonData.type, pokemonData.weigth);
 					products.push(product);
-					localStorage.setItem('products', JSON.stringify(products));
+					
 					addCart(pokemonData.name, pokemonData.img, pokemonData.type, pokemonData.weigth);
 				  } else if(this.status == 404){
 					//alert to user
@@ -150,8 +158,16 @@
 		function removePokemonFromCart(product){
 			let idx = products.indexOf(product);
 			products.splice(idx,1);
-			localStorage.setItem("products", JSON.stringify(products));
-			if (products.length==0) localStorage.removeItem("products");
+			let link = prefixUrl + product.name;
+			
+			var deletePokemon = new XMLHttpRequest();
+			deletePokemon.onreadystatechange = function() {
+			  if (this.readyState == 4 && this.status == 200 && this.responseText != "") {
+				console.log(this.responseText);		
+			  } 
+			}
+			deletePokemon.open("POST", link, true);
+			deletePokemon.send();
 		}
 		</script>
     </body>
